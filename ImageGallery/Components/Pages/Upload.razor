@@ -1,5 +1,8 @@
 @page "/upload"
 @using System.Net
+@using System.Data.SQLite
+@using System.Security.Cryptography
+@using System.Text
 @inject IHttpClientFactory HttpClientFactory;
 @rendermode InteractiveServer
 
@@ -23,7 +26,6 @@
 </div>
 
 @code {
-    private List<UploadedFile> selectedFiles = new List<UploadedFile>();
     private Microsoft.AspNetCore.Components.Forms.IBrowserFile fileSelected;
     private string uploadStatus;
 
@@ -49,8 +51,10 @@
             var response = await httpClient.PostAsync("api/upload", content);
             if (response.IsSuccessStatusCode)
             {
-                var hash = await response.Content.ReadAsStringAsync();
-                uploadStatus = $"File {file.Name} uploaded successfully! Code is {hash}";
+                string code = await response.Content.ReadAsStringAsync();
+                uploadStatus = $"File {file.Name} uploaded successfully! Code is {code}";
+                
+                InsertImage(file.Name, code);
             }
             else
             {
@@ -66,11 +70,32 @@
         StateHasChanged();
     }
 
-
-    private class UploadedFile
+    private void InsertImage(string Name, string Password)
     {
-        public string Name { get; set; }
-        public long Size { get; set; }
-        public string Path { get; set; } 
+        string insertQuery = "INSERT INTO Images (Name, Password, InsertionDate) VALUES (@Name, @Password, DATETIME('now'));";
+
+        string connectionString = "Data Source=images.db;Version=3;";
+
+        string hashedPassword = HashPassword(Password);
+        
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (var command = new SQLiteCommand(insertQuery, connection))
+            {
+                command.Parameters.AddWithValue("@Name", Name);
+                command.Parameters.AddWithValue("@Password", hashedPassword);
+                command.ExecuteNonQuery();
+                Console.WriteLine("Data inserted successfully.");
+            }
+        }
     }
+        
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashBytes); // Store the hash as Base64
+    }
+        
 }

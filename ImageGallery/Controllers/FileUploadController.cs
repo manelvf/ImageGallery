@@ -63,6 +63,12 @@ public class ListController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> ListImages()
     {
+        
+        string insertQuery = "SELECT * FROM Images;";
+
+        string connectionString = "Data Source=images.db;Version=3;";
+        
+        
         var fileService = new FileService();
         var wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         var uploadsFolder = Path.Combine(wwwfolder, "uploads");

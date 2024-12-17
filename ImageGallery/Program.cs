@@ -1,4 +1,5 @@
 using ImageGallery.Components;
+using System.Data.SQLite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,5 +42,28 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapControllers();
+
+
+string connectionString = "Data Source=images.db;Version=3;";
+
+string createTableQuery = @"
+    CREATE TABLE IF NOT EXISTS Images (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Name TEXT NOT NULL,
+        Password TEXT NOT NULL,
+        InsertionDate DATETIME NOT NULL
+    );";
+
+using (var connection = new SQLiteConnection(connectionString))
+{
+    connection.Open();
+    Console.WriteLine("SQLite database connected successfully.");
+    
+    using (var command = new SQLiteCommand(createTableQuery, connection))
+    {
+        command.ExecuteNonQuery();
+        Console.WriteLine("Table created successfully.");
+    }
+}
 
 app.Run();
