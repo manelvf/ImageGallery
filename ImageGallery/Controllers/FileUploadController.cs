@@ -6,6 +6,7 @@ using System.Text;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using SkiaSharp;
+using Microsoft.Data.Sqlite;
 
 
 [ApiController]
@@ -136,10 +137,12 @@ public class ThumbnailService
         }
     }
 
-    private void SaveThumbnailWithSizeLimit(SKImage image, string thumbnailPath, int sizeLimit)
+    private void SaveThumbnailWithSizeLimit(SKImage image, string thumbnailPath, int kbLimit)
     {
         int quality = 80; // Starting quality
         byte[] thumbnailData = null;
+        
+        int sizeLimit = kbLimit * 1024;
 
         for (int attempt = 0; attempt < MaxCompressionAttempts; attempt++)
         {
