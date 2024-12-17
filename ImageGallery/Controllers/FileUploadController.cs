@@ -64,17 +64,34 @@ public class ListController : ControllerBase
     public async Task<IActionResult> ListImages()
     {
         
-        string insertQuery = "SELECT * FROM Images;";
+        string selectQuery = "SELECT * FROM Images;";
 
         string connectionString = "Data Source=images.db;Version=3;";
-        
-        
-        var fileService = new FileService();
-        var wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var uploadsFolder = Path.Combine(wwwfolder, "uploads");
-        var images = fileService.GetUploadedFiles(uploadsFolder);
+
+        List<Image> images = new List<Image>();
+
+        using (var connection = new SqliteConnection(connectionString))
+        using (var command = new SqliteCommand(selectQuery, connection))
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                Image image = new Image
+                {
+                    Name = reader.GetString(1),
+                    InsertionDate = reader.GetString(3),
+                };
+                images.Add(image);
+            }
+        }
 
         return Ok(images);
+    }
+
+    private class Image
+    {
+        public string Name { get; set; }
+        public string InsertionDate { get; set; }
     }
 }
 

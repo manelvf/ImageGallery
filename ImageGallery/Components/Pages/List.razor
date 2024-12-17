@@ -20,10 +20,11 @@ else
         @foreach (var image in images)
         {
             <li>
-                <img src="thumbs/@image" />
-                <a href="thumbs/@image">Thumbnail</a>
-                <a href="optimized/@image">Optimized</a>
-                <a href="uploads/@image">Original</a>
+                <img src="thumbs/@image.Name" />
+                Creation Date: @image.InsertionDate
+                <a href="thumbs/@image.Name">Thumbnail</a>
+                <a href="optimized/@image.Name">Optimized</a>
+                <a href="uploads/@image.Name">Original</a>
                 <button @onclick="OpenPromptDialog">Delete</button>
             </li>
         }
@@ -60,14 +61,14 @@ else
         Console.WriteLine($"Prompt confirmed with value: {inputValue}");
     }
     
-    private List<string> images;
+    private List<Image> images;
     
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var httpClient = HttpClientFactory.CreateClient("APIClient");
-            images = await httpClient.GetFromJsonAsync<List<string>>("api/list");
+            images = await httpClient.GetFromJsonAsync<List<Image>>("api/list");
             Console.WriteLine(images);
         }
         catch (Exception ex)
@@ -75,5 +76,10 @@ else
             Console.WriteLine($"Error fetching images {ex.Message}");
         }
     }
-    
+
+    private class Image
+    {
+        public string Name { get; set; }
+        public string InsertionDate { get; set; }
+    }
 }
