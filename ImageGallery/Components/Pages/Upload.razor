@@ -1,5 +1,6 @@
 @page "/upload"
 @using System.Net
+@inject IHttpClientFactory HttpClientFactory;
 @rendermode InteractiveServer
 
 <h3>Upload Form</h3>
@@ -26,8 +27,6 @@
     private Microsoft.AspNetCore.Components.Forms.IBrowserFile fileSelected;
     private string uploadStatus;
 
-    static readonly HttpClient client = new HttpClient();
-
     private async Task OnFileSelected(InputFileChangeEventArgs e)
     {
         fileSelected = e.File;
@@ -35,8 +34,6 @@
 
     private async Task UploadFiles()
     {
-        // client.BaseAddress = new Uri("http://localhost:5102");
-        
         uploadStatus = "Uploading...";
         StateHasChanged();
 
@@ -48,7 +45,8 @@
             var streamContent = new StreamContent(fileStream);
             content.Add(streamContent, "file", file.Name);
 
-            var response = await client.PostAsync("api/upload", content);
+            var httpClient = HttpClientFactory.CreateClient("APIClient");
+            var response = await httpClient.PostAsync("api/upload", content);
             if (response.IsSuccessStatusCode)
             {
                 var hash = await response.Content.ReadAsStringAsync();
