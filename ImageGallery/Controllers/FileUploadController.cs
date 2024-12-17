@@ -20,7 +20,8 @@ public class FileUploadController : ControllerBase
             return BadRequest("No file uploaded.");
         }
         
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "UploadedFiles");
+        string wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var uploadsFolder = Path.Combine(wwwfolder, "uploads");
         if (!Directory.Exists(uploadsFolder))
         {
             Directory.CreateDirectory(uploadsFolder);
@@ -62,7 +63,9 @@ public class ListController : ControllerBase
     public async Task<IActionResult> ListImages()
     {
         var fileService = new FileService();
-        var images = fileService.GetUploadedFiles("UploadedFiles");
+        var wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var uploadsFolder = Path.Combine(wwwfolder, "uploads");
+        var images = fileService.GetUploadedFiles(uploadsFolder);
 
         return Ok(images);
     }
