@@ -1,4 +1,5 @@
 @page "/list"
+@using System.Globalization
 @using System.Net
 @inject IHttpClientFactory HttpClientFactory;
 @inject IJSRuntime JS
@@ -25,7 +26,7 @@ else
                 <a href="thumbs/@image.Name">Thumbnail</a>
                 <a href="optimized/@image.Name">Optimized</a>
                 <a href="uploads/@image.Name">Original</a>
-                <button @onclick="OpenPromptDialog">Delete</button>
+                <button @onclick="() => OpenPromptDialog(image.Name)">Delete</button>
             </li>
         }
     </ul>
@@ -41,11 +42,13 @@ else
 
 @code {
     private bool _isPromptVisible = false;
+    private string _name = string.Empty;
     private string _userInput = string.Empty;
 
-    private void OpenPromptDialog()
+    private void OpenPromptDialog(string Name)
     {
         _isPromptVisible = true;
+        _name = Name;
     }
 
     private void HandlePromptClose()
@@ -54,10 +57,21 @@ else
         Console.WriteLine("Prompt dialog was cancelled");
     }
 
-    private void HandlePromptConfirm(string inputValue)
+    private async void HandlePromptConfirm(string inputValue)
     {
         _isPromptVisible = false;
         _userInput = inputValue;
+
+        try
+        {
+            var httpClient = HttpClientFactory.CreateClient("APIClient");
+            await httpClient.DeleteAsync($"api/remove?name={_name}&password={_userInput}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting image {ex.Message}");
+        }
+        
         Console.WriteLine($"Prompt confirmed with value: {inputValue}");
     }
     

@@ -96,6 +96,69 @@ public class ListController : ControllerBase
 }
 
 
+
+[ApiController]
+[Route("api/remove")]
+public class FileRemoveController : ControllerBase
+{
+    [HttpDelete]
+    public async Task<IActionResult> UploadFile([FromForm] string fileName, [FromForm] string password)
+    {
+        
+        string selectQuery = "SELECT * FROM Images where Name = @name;";
+
+        string connectionString = "Data Source=images.db;Version=3;";
+        
+        Image image = null;
+
+        using (var connection = new SqliteConnection(connectionString))
+        using (var command = new SqliteCommand(selectQuery, connection))
+        {
+            command.Parameters.AddWithValue("@name", fileName);
+            
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                image = new Image
+                {
+                    Name = reader.GetString(1),
+                    Password = reader.GetString(2),
+                };
+            }
+        }
+
+        if (image != null && password.Length > 0)
+        {
+            string hashedPassword = HashPassword(password);
+            if (image.Password != hashedPassword)
+            {
+                return BadRequest();
+            }
+            else
+            {
+                FileService fileService = new FileService();
+                fileService.DeleteImage(image);
+            }
+        }
+        
+        return Ok();
+    }
+    
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(hashBytes); // Store the hash as Base64
+    }
+        
+}
+
+public class Image
+{
+    public string Name { get; set; }
+    public string Password { get; set; }
+}
+
 public class FileService
 {
     public string[] GetUploadedFiles(string uploadPath)
@@ -116,6 +179,20 @@ public class FileService
             // Handle potential exceptions
             Console.WriteLine($"Error reading upload folder: {ex.Message}");
             return Array.Empty<string>();
+        }
+    }
+
+    public void DeleteImage(Image image)
+    {
+        string deleteQuery = "DELETE FROM Images where Name = @name;";
+        string connectionString = "Data Source=images.db;Version=3;";
+        
+        using (var connection = new SqliteConnection(connectionString))
+        using (var command = new SqliteCommand(deleteQuery, connection))
+        {
+            command.Parameters.AddWithValue("@name", image.Name);
+            connection.Open();
+            command.ExecuteNonQuery();
         }
     }
 }
