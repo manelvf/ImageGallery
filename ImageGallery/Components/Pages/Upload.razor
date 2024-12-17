@@ -1,0 +1,78 @@
+@page "/upload"
+@using System.Net
+@rendermode InteractiveServer
+
+<h3>Upload Form</h3>
+
+<div class="upload-form">
+    <label for="fileInput">Select a file to upload:</label>
+    <InputFile OnChange="OnFileSelected" />
+
+    <div class="file-preview" style="margin-top: 10px;">
+    </div>
+
+    <button @onclick="UploadFiles" class="btn btn-primary" disabled="@(fileSelected is null)">
+        Upload
+    </button>
+
+    @if (!string.IsNullOrEmpty(uploadStatus))
+    {
+        <p>@uploadStatus</p>
+    }
+</div>
+
+@code {
+    private List<UploadedFile> selectedFiles = new List<UploadedFile>();
+    private Microsoft.AspNetCore.Components.Forms.IBrowserFile fileSelected;
+    private string uploadStatus;
+
+    static readonly HttpClient client = new HttpClient();
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        fileSelected = e.File;
+    }
+
+    private async Task UploadFiles()
+    {
+        // client.BaseAddress = new Uri("http://localhost:5102");
+        
+        uploadStatus = "Uploading...";
+        StateHasChanged();
+
+        try
+        {
+            var file = fileSelected;
+            using var content = new MultipartFormDataContent();
+            var fileStream = file.OpenReadStream();
+            var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", file.Name);
+
+            var response = await client.PostAsync("api/upload", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var hash = await response.Content.ReadAsStringAsync();
+                uploadStatus = $"File {file.Name} uploaded successfully! Code is {hash}";
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                uploadStatus = $"Failed to upload {file.Name}. Error: {errorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadStatus = $"Upload failed: {ex.Message}";
+        }
+
+        StateHasChanged();
+    }
+
+
+    private class UploadedFile
+    {
+        public string Name { get; set; }
+        public long Size { get; set; }
+        public string Path { get; set; } 
+    }
+}

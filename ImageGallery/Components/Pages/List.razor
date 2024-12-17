@@ -1,0 +1,44 @@
+@page "/list"
+@using System.Net
+@inject IHttpClientFactory HttpClientFactory;
+@rendermode InteractiveServer
+
+<h3>Image List</h3>
+
+@if (images == null)
+{
+    <p>Loading...</p>
+}
+else if (images.Count == 0)
+{
+    <p>No components found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var image in images)
+        {
+            <li>
+                <img src="@image" />
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<string> images;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpClient = HttpClientFactory.CreateClient("APIClient");
+            images = await httpClient.GetFromJsonAsync<List<string>>("api/list");
+            Console.WriteLine(images);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching images {ex.Message}");
+        }
+    }
+}

@@ -1,0 +1,6 @@
+﻿services:
+  imagegallery:
+    image: imagegallery
+    build:
+      context: .
+      dockerfile: ImageGallery/Dockerfile
