@@ -1,6 +1,7 @@
 @page "/list"
 @using System.Net
 @inject IHttpClientFactory HttpClientFactory;
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <h3>Image List</h3>
@@ -19,16 +20,46 @@ else
         @foreach (var image in images)
         {
             <li>
-                <img src="thumbs/thumb_@image" />
+                <img src="thumbs/@image" />
                 <a href="thumbs/@image">Thumbnail</a>
                 <a href="optimized/@image">Optimized</a>
                 <a href="uploads/@image">Original</a>
+                <button @onclick="OpenPromptDialog">Delete</button>
             </li>
         }
     </ul>
 }
 
+<PromptDialog IsVisible="@_isPromptVisible"
+              Title="Delete Image"
+              Message="Please enter your password:"
+              Placeholder="Your password"
+              OnClose="HandlePromptClose"
+              OnConfirm="HandlePromptConfirm" />
+
+
 @code {
+    private bool _isPromptVisible = false;
+    private string _userInput = string.Empty;
+
+    private void OpenPromptDialog()
+    {
+        _isPromptVisible = true;
+    }
+
+    private void HandlePromptClose()
+    {
+        _isPromptVisible = false;
+        Console.WriteLine("Prompt dialog was cancelled");
+    }
+
+    private void HandlePromptConfirm(string inputValue)
+    {
+        _isPromptVisible = false;
+        _userInput = inputValue;
+        Console.WriteLine($"Prompt confirmed with value: {inputValue}");
+    }
+    
     private List<string> images;
     
     protected override async Task OnInitializedAsync()
@@ -44,4 +75,5 @@ else
             Console.WriteLine($"Error fetching images {ex.Message}");
         }
     }
+    
 }

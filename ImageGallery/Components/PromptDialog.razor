@@ -1,0 +1,66 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="modal @(IsVisible ? "show" : "")" tabindex="-1" style="display: @(IsVisible ? "block" : "none");">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@Message</p>
+                <input type="text" 
+                       class="form-control" 
+                       @bind="_inputValue" 
+                       @bind:event="oninput"
+                       placeholder="@Placeholder" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                <button type="button" 
+                        class="btn btn-primary" 
+                        @onclick="Confirm"
+                        disabled="@string.IsNullOrWhiteSpace(_inputValue)">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _inputValue = string.Empty;
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Password Prompt";
+
+    [Parameter]
+    public string Message { get; set; } = "Please enter a password:";
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Enter your password";
+
+    [Parameter]
+    public EventCallback<string> OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        IsVisible = false;
+        _inputValue = string.Empty;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task Confirm()
+    {
+        if (!string.IsNullOrWhiteSpace(_inputValue))
+        {
+            IsVisible = false;
+            await OnConfirm.InvokeAsync(_inputValue);
+            _inputValue = string.Empty;
+        }
+    }
+}
