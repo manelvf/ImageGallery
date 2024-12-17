@@ -39,10 +39,10 @@ public class FileUploadController : ControllerBase
         ThumbnailService thumbnailService = new ThumbnailService();
         thumbnailService.CreateThumbnail(filePath, 100, 100);
 
+        // Extract an MD5 hash from the filepath
         MD5 md5 = MD5.Create();
         byte[] fileBytes = Encoding.UTF8.GetBytes(filePath);
         byte[] hashBytes = md5.ComputeHash(fileBytes);
-        
         
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < hashBytes.Length; i++)
@@ -98,14 +98,19 @@ public class FileService
 
 public class ThumbnailService
 {
-    private const int MaxThumbnailSizeBytes = 300 * 1024; // 300 KB
+    private const int MaxThumbnailSizeBytes = 50 * 1024; // 50 KB
+    private const int MaxOptimizedSizeBytes = 300 * 1024; // 300 KB
     private const int MaxCompressionAttempts = 10;
 
     public void CreateThumbnail(string uploadedFile, int width, int height)
     {
         string wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        
         string thumbsFolder = Path.Combine(wwwfolder, "thumbs");
         Directory.CreateDirectory(thumbsFolder);
+        
+        string optimizedFolder = Path.Combine(wwwfolder, "optimized");
+        Directory.CreateDirectory(optimizedFolder);
 
         using (var originalStream = File.OpenRead(uploadedFile))
         using (var originalBitmap = SKBitmap.Decode(originalStream))
@@ -121,16 +126,17 @@ public class ThumbnailService
             using (var image = SKImage.FromBitmap(resizedBitmap))
             {
                 string fileName = Path.GetFileName(uploadedFile);
-                string thumbnailFileName = $"thumb_{fileName}";
-                string thumbnailPath = Path.Combine(thumbsFolder, thumbnailFileName);
+                string thumbnailPath = Path.Combine(thumbsFolder, fileName);
+                string optimizedPath = Path.Combine(optimizedFolder, fileName);
 
-                // Try to compress the image to fit within 300 KB
-                SaveThumbnailWithSizeLimit(image, thumbnailPath);
+                // Try to compress the image to fit within 50 KB
+                SaveThumbnailWithSizeLimit(image, thumbnailPath, 50);
+                SaveThumbnailWithSizeLimit(image, optimizedPath, 300);
             }
         }
     }
 
-    private void SaveThumbnailWithSizeLimit(SKImage image, string thumbnailPath)
+    private void SaveThumbnailWithSizeLimit(SKImage image, string thumbnailPath, int sizeLimit)
     {
         int quality = 80; // Starting quality
         byte[] thumbnailData = null;
@@ -143,7 +149,7 @@ public class ThumbnailService
                 thumbnailData = data.ToArray();
 
                 // Check if the file size is within the limit
-                if (thumbnailData.Length <= MaxThumbnailSizeBytes)
+                if (thumbnailData.Length <= sizeLimit)
                 {
                     File.WriteAllBytes(thumbnailPath, thumbnailData);
                     return;
