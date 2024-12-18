@@ -4,3 +4,8 @@
     build:
       context: .
       dockerfile: ImageGallery/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./images.db:/app/images.db
+
