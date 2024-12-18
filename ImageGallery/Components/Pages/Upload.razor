@@ -43,7 +43,7 @@
         {
             var file = fileSelected;
             using var content = new MultipartFormDataContent();
-            var fileStream = file.OpenReadStream();
+            var fileStream = file.OpenReadStream(maxAllowedSize:3 * 1024 * 1024);
             var streamContent = new StreamContent(fileStream);
             content.Add(streamContent, "file", file.Name);
 
