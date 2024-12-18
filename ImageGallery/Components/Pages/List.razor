@@ -7,6 +7,11 @@
 
 <h3>Image List</h3>
 
+@if (deleteError is not null)
+{
+    <p>Error: @deleteError</p>
+}
+
 @if (images == null)
 {
     <p>Loading...</p>
@@ -41,6 +46,8 @@ else
 
 
 @code {
+    private string deleteError = null;
+    
     private bool _isPromptVisible = false;
     private string _name = string.Empty;
     private string _userInput = string.Empty;
@@ -65,11 +72,29 @@ else
         try
         {
             var httpClient = HttpClientFactory.CreateClient("APIClient");
-            await httpClient.DeleteAsync($"api/remove?name={_name}&password={_userInput}");
+            var response = await httpClient.DeleteAsync($"api/remove?name={_name}&password={_userInput}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("File deleted successfully");
+                deleteError = null;
+                await RetrieveImages();
+            }
+            else
+            {
+                Console.WriteLine("Password wasn't correct");
+                deleteError = "Password wasn't correct";
+            }
+
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting image {ex.Message}");
+            deleteError = $"Error deleting image {ex.Message}";
+        }
+        finally
+        {
+            StateHasChanged();
         }
         
         Console.WriteLine($"Prompt confirmed with value: {inputValue}");
@@ -78,6 +103,11 @@ else
     private List<Image> images;
     
     protected override async Task OnInitializedAsync()
+    {
+        await RetrieveImages();
+    }
+
+    protected async Task RetrieveImages()
     {
         try
         {
@@ -90,6 +120,7 @@ else
             Console.WriteLine($"Error fetching images {ex.Message}");
         }
     }
+
 
     private class Image
     {

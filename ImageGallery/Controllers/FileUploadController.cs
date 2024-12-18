@@ -104,19 +104,21 @@ public class ListController : ControllerBase
 public class FileRemoveController : ControllerBase
 {
     [HttpDelete]
-    public async Task<IActionResult> UploadFile([FromForm] string fileName, [FromForm] string password)
+    public async Task<IActionResult> DeleteImage([FromQuery] string name, [FromQuery] string password)
     {
         
         string selectQuery = "SELECT * FROM Images where Name = @name;";
 
-        string connectionString = "Data Source=images.db;Version=3;";
+        string connectionString = "Data Source=images.db;";
         
         Image image = null;
 
-        using (var connection = new SqliteConnection(connectionString))
+        var connection = new SqliteConnection(connectionString);
+        connection.Open();
+        
         using (var command = new SqliteCommand(selectQuery, connection))
         {
-            command.Parameters.AddWithValue("@name", fileName);
+            command.Parameters.AddWithValue("@name", name);
             
             var reader = command.ExecuteReader();
             while (reader.Read())
@@ -132,9 +134,10 @@ public class FileRemoveController : ControllerBase
         if (image != null && password.Length > 0)
         {
             string hashedPassword = HashPassword(password);
+            
             if (image.Password != hashedPassword)
             {
-                return BadRequest();
+                return BadRequest("Passwords do not match.");
             }
             else
             {
