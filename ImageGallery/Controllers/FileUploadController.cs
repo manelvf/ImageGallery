@@ -66,11 +66,13 @@ public class ListController : ControllerBase
         
         string selectQuery = "SELECT * FROM Images;";
 
-        string connectionString = "Data Source=images.db;Version=3;";
+        string connectionString = "Data Source=images.db;";
 
         List<Image> images = new List<Image>();
 
-        using (var connection = new SqliteConnection(connectionString))
+        var connection = new SqliteConnection(connectionString);
+        connection.Open();
+        
         using (var command = new SqliteCommand(selectQuery, connection))
         using (var reader = command.ExecuteReader())
         {
@@ -185,7 +187,7 @@ public class FileService
     public void DeleteImage(Image image)
     {
         string deleteQuery = "DELETE FROM Images where Name = @name;";
-        string connectionString = "Data Source=images.db;Version=3;";
+        string connectionString = "Data Source=images.db;";
         
         using (var connection = new SqliteConnection(connectionString))
         using (var command = new SqliteCommand(deleteQuery, connection))
