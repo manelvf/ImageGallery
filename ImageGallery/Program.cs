@@ -1,5 +1,7 @@
 using ImageGallery.Components;
 using System.Data.SQLite;
+using Microsoft.Extensions.FileProviders;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseStaticFiles();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "data")),
+    RequestPath = "/data"
+});
 
 app.UseHttpsRedirection();
 

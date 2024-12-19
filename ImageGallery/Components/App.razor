@@ -15,6 +15,16 @@
 
 <body>
 <Routes/>
+<script>
+    function downloadFromDataUrl(dataUrl, fileName) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+</script>
 <script src="_framework/blazor.web.js"></script>
 </body>
 

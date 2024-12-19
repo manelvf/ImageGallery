@@ -21,8 +21,8 @@ public class FileUploadController : ControllerBase
             return BadRequest("No file uploaded.");
         }
         
-        string wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        var uploadsFolder = Path.Combine(wwwfolder, "uploads");
+        string dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "data");
+        var uploadsFolder = Path.Combine(dataFolder, "uploads");
         if (!Directory.Exists(uploadsFolder))
         {
             Directory.CreateDirectory(uploadsFolder);
@@ -210,12 +210,12 @@ public class ThumbnailService
 
     public void CreateThumbnail(string uploadedFile, int width, int height)
     {
-        string wwwfolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        string dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "data");
         
-        string thumbsFolder = Path.Combine(wwwfolder, "thumbs");
+        string thumbsFolder = Path.Combine(dataFolder, "thumbs");
         Directory.CreateDirectory(thumbsFolder);
         
-        string optimizedFolder = Path.Combine(wwwfolder, "optimized");
+        string optimizedFolder = Path.Combine(dataFolder, "optimized");
         Directory.CreateDirectory(optimizedFolder);
 
         using (var originalStream = File.OpenRead(uploadedFile))

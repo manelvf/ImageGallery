@@ -28,9 +28,9 @@ else
             <li>
                 <img src="thumbs/@image.Name" />
                 Creation Date: @image.InsertionDate
-                <a href="thumbs/@image.Name">Thumbnail</a>
-                <a href="optimized/@image.Name">Optimized</a>
-                <a href="uploads/@image.Name">Original</a>
+                <Button @onclick='() => DownloadImageAsync("thumbs", image.Name)' >Thumbnail</Button>
+                <Button @onclick='() => DownloadImageAsync("optimized", image.Name)' >Optimized</Button>
+                <Button @onclick='() => DownloadImageAsync("uploads", image.Name)' >Original</Button>
                 <button @onclick="() => OpenPromptDialog(image.Name)">Delete</button>
             </li>
         }
@@ -127,4 +127,57 @@ else
         public string Name { get; set; }
         public string InsertionDate { get; set; }
     }
+
+    private async Task DownloadImageAsync(string FolderPath, string ImageName)
+    {
+        try
+        {
+            var dataPath = Path.Combine("data", FolderPath);
+            var imagePath = Path.Combine(dataPath, ImageName);
+
+            if (!File.Exists(imagePath))
+            {
+                throw new FileNotFoundException($"Image {ImageName} not found at path: {imagePath}");
+            }
+
+            // Read file bytes
+            byte[] fileBytes = await File.ReadAllBytesAsync(imagePath);
+            
+            // Convert to base64
+            string base64 = Convert.ToBase64String(fileBytes);
+            
+            // Get MIME type
+            string mimeType = GetMimeType(Path.GetExtension(ImageName));
+            
+            // Create data URL
+            string dataUrl = $"data:{mimeType};base64,{base64}";
+
+            // Use JS interop to trigger download
+            await JS.InvokeVoidAsync("downloadFromDataUrl", dataUrl, $"{FolderPath}_{ImageName}");
+        }
+        catch (Exception ex)
+        {
+            // Handle error appropriately
+            Console.Error.WriteLine($"Error downloading image: {ex.Message}");
+            // You might want to surface this error to the UI
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private string GetMimeType(string extension)
+    {
+        return extension.ToLower() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".bmp" => "image/bmp",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+    }
 }
+    
