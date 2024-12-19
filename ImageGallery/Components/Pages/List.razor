@@ -26,7 +26,7 @@ else
         @foreach (var image in images)
         {
             <li>
-                <img src="thumbs/@image.Name" />
+                <img src="data/thumbs/@image.Name" />
                 Creation Date: @image.InsertionDate
                 <Button @onclick='() => DownloadImageAsync("thumbs", image.Name)' >Thumbnail</Button>
                 <Button @onclick='() => DownloadImageAsync("optimized", image.Name)' >Optimized</Button>
