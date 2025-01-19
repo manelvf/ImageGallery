@@ -1,4 +1,4 @@
-# Image Gallery with Image Scaling
+# Image Gallery with Scaling
 
 ## Overview
 This project is an **Image Gallery** application developed in C#. It allows users to upload images, view them in a gallery, and scale them dynamically. The application is designed for desktop or web environments and includes image scaling features to optimize image dimensions for better performance and usability.
